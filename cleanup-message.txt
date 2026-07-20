@@ -1,0 +1,48 @@
+Registry cleanup: rebuild repository history as clean snapshot
+
+This commit replaces the previous git history with a new clean snapshot
+of the current registry state.
+
+The Mercur root registry is treated as a state distribution system rather
+than a traditional source repository. Over time, git history accumulates
+obsolete commits, removed registry versions, deprecated references, and
+historical data that is no longer required for clients.
+
+This cleanup intentionally removes the previous branch history while
+preserving the complete current registry state.
+
+Changes:
+- Recreated repository history from the current main branch state
+- Removed obsolete git commits from the active branch history
+- Preserved all current registry definitions
+- Preserved authority declarations
+- Preserved namespace ownership mappings
+- Preserved current registry configuration
+- Generated a new clean initial snapshot commit
+
+Reason:
+The Mercur registry client only requires the compiled registry state and
+cryptographic integrity verification. The git commit history itself is not
+part of the trust model and is not required for registry resolution.
+
+The authoritative data is:
+- registry metadata
+- registry.mreg contents
+- signatures
+- authority delegation information
+
+Git is used only as a distribution and synchronization transport.
+
+Backup:
+The previous repository state has been preserved using an annotated git tag:
+cleanup-backup-<timestamp>
+
+This allows recovery or historical inspection if required.
+
+Operational impact:
+- Existing clients using cached registry data continue to function
+- New clients receive the latest clean registry snapshot
+- Future registry synchronization starts from the new history baseline
+- Repository size and clone performance are improved
+
+This operation is intentional and part of regular registry maintenance.

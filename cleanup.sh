@@ -21,7 +21,6 @@ if [ "${1:-}" != "confirm" ]; then
     exit 1
 fi
 
-echo "Creating orphan branch..."
 
 current_branch=$(git branch --show-current)
 
@@ -29,9 +28,27 @@ if [ "$current_branch" != "main" ]; then
     echo "Error: You must run this on main branch."
     exit 1
 fi
+if git show-ref --verify --quiet refs/heads/clean-stage; then
+    echo "clean-stage already exists"
+    exit 1
+fi
+
+echo "Creating backup tag..."
+
+TAG_NAME="cleanup-backup-$(date +%Y-%m-%d-%H%M%S)"
+
+git tag -a "$TAG_NAME" -m "Backup before cleanup"
+
+git push origin "$TAG_NAME"
+
+echo "Created backup tag: $TAG_NAME"
+
+
+echo "Creating orphan branch..."
+git checkout --orphan clean-stage
 
 git add -A
-git commit -m "Clean up"
+git commit -F cleanup-message.txt
 
 echo
 echo "New history created:"
@@ -56,11 +73,16 @@ if [ "$answer" != "YES" ]; then
 fi
 
 
+git fetch origin
+
+if ! git diff --quiet origin/main main; then
+    echo "Warning: Remote main differs from local main."
+fi
 
 git branch -D main
 git branch -m main
 
-git fetch origin
-git push --force origin main
+
+git push --force-with-lease origin main
 
 echo "Cleanup complete."
