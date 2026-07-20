@@ -1,0 +1,55 @@
+name: Compile Registry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "authorities/**"
+      - "namespaces/**"
+      # - "pkgs/**"
+      - ".github/**"
+
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: |
+            ~/.cargo
+
+      - name: Build compiler
+        run: cargo install mercur --no-default-features
+
+      - name: Compile registry
+        run: |
+          mercur registry compile
+
+      - name: Commit registry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add registry.mreg
+
+          if git diff --cached --quiet; then
+            echo "Registry unchanged."
+            exit 0
+          fi
+
+          git commit -m "Update registry.mreg [skip ci]"
+          git push
