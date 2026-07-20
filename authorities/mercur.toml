@@ -1,0 +1,26 @@
+schema = 1
+[metadata]
+id = "mercur"
+name = "Mercur Authority"
+
+
+owners = ["$public"]
+
+homepage = ""
+description = "Official Mercur Repositories"
+
+signing_keys = []
+contact = ""
+[search]
+enabled = true
+
+allow_registries = []
+deny_registries = []
+allow_namespaces = []
+deny_namespaces = [
+    "internal"
+]
+[[registry]]
+type = "github"
+ref = "github:mercurpkg/mercurpkgs"
+namespace = "/"
