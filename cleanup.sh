@@ -3,7 +3,10 @@ restore(){
     echo "Restoring old branch..."
 
     git checkout main
-    git branch -D clean-stage
+
+    if git show-ref --verify --quiet refs/heads/clean-stage; then
+        git branch -D clean-stage
+    fi
 
     echo "Restored."
     exit 1
@@ -20,7 +23,12 @@ fi
 
 echo "Creating orphan branch..."
 
-git checkout --orphan clean-stage
+current_branch=$(git branch --show-current)
+
+if [ "$current_branch" != "main" ]; then
+    echo "Error: You must run this on main branch."
+    exit 1
+fi
 
 git add -A
 git commit -m "Clean up"
@@ -52,6 +60,7 @@ fi
 git branch -D main
 git branch -m main
 
+git fetch origin
 git push --force origin main
 
 echo "Cleanup complete."
